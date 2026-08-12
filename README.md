@@ -1,12 +1,3 @@
-## Learning roadmap
+## Project purpose
 
-This project is being developed while studying backend engineering with Go.
-
-Current topics:
-
-- Go
-- Git and GitHub
-- PostgreSQL
-- REST APIs
-- Testing
-- Docker
+PerfumeOps aims to provide a reliable backend for managing products, inventory, customers, orders and payments in a perfume business.s
