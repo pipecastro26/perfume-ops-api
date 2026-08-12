@@ -1,3 +1,7 @@
 ## Project purpose
 
-PerfumeOps aims to provide a reliable backend for managing products, inventory, customers, orders and payments in a perfume business.s
+1 secound
+
+3 therr 
+
+4 theaa
