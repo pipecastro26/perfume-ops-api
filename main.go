@@ -31,16 +31,17 @@ func main() {
 	fmt.Printf("Profit per unit: %d %s\n", profitPerUnit, currency)
 	fmt.Printf("Total profit: %d %s\n", totalProfit, currency)
 	fmt.Printf("Low stock: %t\n", lowStock)
-	if lowStock {
-		fmt.Println("Warning: product needs restocking")
+	if remainingStock == 0 {
+		fmt.Println("Inventory status: Out of stock")
+	} else if remainingStock <= minimumStock {
+		fmt.Println("Inventory status: Low stock")
 	} else {
-		fmt.Println("Inventory level is sufficient")
+		fmt.Println("Inventory status: Sufficient")
 	}
-	if stock-soldUnits == 0 {
-		available = false
-		fmt.Println(available)
+	if available && remainingStock > 0 {
+		fmt.Println("Product can be sold")
 	} else {
-		fmt.Println(available)
+		fmt.Println("Product cannot be sold")
 	}
 
 }
