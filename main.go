@@ -5,20 +5,8 @@ import (
 	"fmt"
 )
 
-func calculateProfit(salePrice, purchasePrice int) int {
-	return salePrice - purchasePrice
-}
-
 func calculateRevenue(price, quantity int) int {
 	return price * quantity
-}
-
-func isLowStock(stock, minimumStock int) bool {
-	return stock <= minimumStock
-}
-
-func isAvailable(stock int) bool {
-	return stock > 0
 }
 
 func processSale(stock, quantity int) (int, error) {
@@ -33,48 +21,122 @@ func processSale(stock, quantity int) (int, error) {
 	return stock - quantity, nil
 }
 
+func displayProduct(index int, name string, price int, stock int, minimumStock int) {
+	fmt.Printf(
+		"%d. %s - %d COP - Stock: %d",
+		index+1,
+		name,
+		price,
+		stock,
+	)
+
+	if stock <= minimumStock {
+		fmt.Print(" - WARNING: Low stock")
+	}
+
+	fmt.Println()
+}
+
 func main() {
 	const currency = "COP"
-	const minimumStock = 3
+	const minimumStock = 5
 
-	productName := "Yara"
-	brand := "Lattafa"
-	purchasePrice := 100000
-	salePrice := 200000
-	stock := 8
-	soldUnits := 2
+	products := []string{
+		"Yara",
+		"Khamrah",
+		"Asad Bourbon",
+	}
 
-	remainingStock, err := processSale(stock, soldUnits)
+	prices := []int{
+		200000,
+		210000,
+		210000,
+	}
+
+	stocks := []int{
+		8,
+		4,
+		10,
+	}
+
+	fmt.Println("PerfumeOps Catalog")
+	fmt.Println("--------------------")
+
+	totalInventoryValue := 0
+
+	for index, product := range products {
+		displayProduct(
+			index,
+			product,
+			prices[index],
+			stocks[index],
+			minimumStock,
+		)
+
+		totalInventoryValue += prices[index] * stocks[index]
+	}
+
+	fmt.Println("--------------------")
+	fmt.Printf("Total inventory value: %d %s\n", totalInventoryValue, currency)
+
+	// Primera venta
+	productIndex := 0
+	quantity := 3
+
+	fmt.Println()
+	fmt.Println("Processing sale...")
+	fmt.Println("--------------------")
+
+	remainingStock, err := processSale(
+		stocks[productIndex],
+		quantity,
+	)
 
 	if err != nil {
 		fmt.Println("Sale could not be processed:", err)
-		return
+	} else {
+		stocks[productIndex] = remainingStock
+
+		saleRevenue := calculateRevenue(
+			prices[productIndex],
+			quantity,
+		)
+
+		fmt.Println("Sale processed successfully")
+		fmt.Println("Product:", products[productIndex])
+		fmt.Println("Units sold:", quantity)
+		fmt.Println("Remaining stock:", stocks[productIndex])
+		fmt.Printf("Sale revenue: %d %s\n", saleRevenue, currency)
 	}
 
-	profitPerUnit := calculateProfit(salePrice, purchasePrice)
-	totalRevenue := calculateRevenue(salePrice, soldUnits)
-	totalProfit := profitPerUnit * soldUnits
-	lowStock := isLowStock(remainingStock, minimumStock)
-	available := isAvailable(remainingStock)
+	// Segunda venta
+	productIndex2 := 1
+	quantity2 := 3
 
-	fmt.Println("PerfumeOps")
+	fmt.Println()
+	fmt.Println("Processing second sale...")
 	fmt.Println("--------------------")
-	fmt.Printf("Product: %s\n", productName)
-	fmt.Printf("Brand: %s\n", brand)
-	fmt.Printf("Sale price: %d %s\n", salePrice, currency)
-	fmt.Printf("Units sold: %d\n", soldUnits)
-	fmt.Printf("Remaining stock: %d\n", remainingStock)
-	fmt.Printf("Revenue: %d %s\n", totalRevenue, currency)
-	fmt.Printf("Profit per unit: %d %s\n", profitPerUnit, currency)
-	fmt.Printf("Total profit: %d %s\n", totalProfit, currency)
-	fmt.Printf("Low stock: %t\n", lowStock)
-	fmt.Printf("Available: %t\n", available)
 
-	if remainingStock == 0 {
-		fmt.Println("Inventory status: Out of stock")
-	} else if lowStock {
-		fmt.Println("Inventory status: Low stock")
+	remainingStock2, err := processSale(
+		stocks[productIndex2],
+		quantity2,
+	)
+
+	if err != nil {
+		fmt.Println("Sale could not be processed:", err)
 	} else {
-		fmt.Println("Inventory status: Sufficient")
+		stocks[productIndex2] = remainingStock2
+
+		saleRevenue2 := calculateRevenue(
+
+			prices[productIndex2],
+			quantity2,
+		)
+
+		fmt.Println("Sale processed successfully")
+		fmt.Println("Product:", products[productIndex2])
+		fmt.Println("Units sold:", quantity2)
+		fmt.Println("Remaining stock:", stocks[productIndex2])
+		fmt.Printf("Sale revenue: %d %s\n", saleRevenue2, currency)
 	}
 }
