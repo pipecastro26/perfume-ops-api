@@ -8,7 +8,15 @@ import (
 func calculateRevenue(price, quantity int) int {
 	return price * quantity
 }
-
+func addProduct(products []string, product string) []string {
+	return append(products, product)
+}
+func addStock(products []int, product int) []int {
+	return append(products, product)
+}
+func addPrice(products []int, product int) []int {
+	return append(products, product)
+}
 func processSale(stock, quantity int) (int, error) {
 	if quantity <= 0 {
 		return 0, errors.New("quantity must be greater than zero")
@@ -58,6 +66,9 @@ func main() {
 		4,
 		10,
 	}
+	products = addProduct(products, "Club de nuit")
+	prices = addPrice(prices, 200000)
+	stocks = addStock(stocks, 5)
 
 	fmt.Println("PerfumeOps Catalog")
 	fmt.Println("--------------------")
