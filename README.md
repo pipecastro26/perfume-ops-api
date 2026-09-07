@@ -1,3 +1,7 @@
-## Project purpose
+## Current features
 
-cuarta preuba y ya casi me aprendo y comprendo los comandos
+- Product catalog
+- Inventory tracking
+- Low-stock detection
+- Sale validation
+- Revenue calculation

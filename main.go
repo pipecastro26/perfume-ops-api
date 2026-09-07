@@ -1,75 +1,149 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 )
 
-func calculateRevenue(price, quantity int) int {
-	return price * quantity
+type Product struct {
+	SKU   string `json:"sku"`
+	Name  string `json:"name"`
+	Price int    `json:"price"`
+	Stock int    `json:"stock"`
 }
-func addProduct(products []string, product string) []string {
-	return append(products, product)
-}
-func addStock(products []int, product int) []int {
-	return append(products, product)
-}
-func addPrice(products []int, product int) []int {
-	return append(products, product)
-}
-func processSale(stock, quantity int) (int, error) {
-	if quantity <= 0 {
-		return 0, errors.New("quantity must be greater than zero")
+
+func addProduct(products []Product, product Product) ([]Product, error) {
+	for _, existingProduct := range products {
+		if existingProduct.SKU == product.SKU {
+			return products, errors.New("product already exists")
+		}
 	}
 
-	if quantity > stock {
-		return 0, errors.New("insufficient stock")
-	}
-
-	return stock - quantity, nil
+	return append(products, product), nil
 }
 
-func displayProduct(index int, name string, price int, stock int, minimumStock int) {
+func displayProduct(index int, product Product, minimumStock int) {
 	fmt.Printf(
-		"%d. %s - %d COP - Stock: %d",
+		"%d. %s - %s - %d COP - Stock: %d",
 		index+1,
-		name,
-		price,
-		stock,
+		product.SKU,
+		product.Name,
+		product.Price,
+		product.Stock,
 	)
 
-	if stock <= minimumStock {
+	if product.Stock <= minimumStock {
 		fmt.Print(" - WARNING: Low stock")
 	}
 
 	fmt.Println()
 }
+func saveProducts(products []Product, filename string) error {
+	data, err := json.MarshalIndent(products, "", "  ")
+	if err != nil {
+		return err
+	}
+	err = os.WriteFile(filename, data, 0644)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func loadProducts(filename string) ([]Product, error) {
+	data, err := os.ReadFile(filename)
 
+	if err != nil {
+		return []Product{}, errors.New("no se leyo")
+	}
+
+	var products []Product
+
+	err = json.Unmarshal(data, &products)
+
+	if err != nil {
+		return products, errors.New("no se leyo")
+	}
+
+	return products, nil
+}
+func processSaleBySKU(
+	products []Product,
+	sku string,
+	quantity int,
+) ([]Product, int, error, int) {
+	index, err := findProductIndexBySKU(products, sku)
+	if err != nil {
+		return products, 0, errors.New("product not found"), 0
+	}
+	err2 := products[index].DecreaseStock(quantity)
+	if err2 != nil {
+		return products, 0, errors.New("quantity must be greater than zero"), 0
+	}
+	return products, products[index].Revenue(quantity), nil, index
+
+}
+func (p Product) Revenue(quantity int) int {
+	return p.Price * quantity
+}
+func (p *Product) IncreaseStock(quantity int) error {
+	if quantity <= 0 {
+		return errors.New("quantity must be greater than zero")
+	}
+
+	p.Stock += quantity
+	return nil
+}
+func (p *Product) DecreaseStock(quantity int) error {
+	if quantity <= 0 {
+		return errors.New("quantity must be greater than zero")
+	}
+
+	if quantity > p.Stock {
+		return errors.New("insufficient stock")
+	}
+
+	p.Stock -= quantity
+	return nil
+}
+func (p *Product) ChangePrice(newPrice int) error {
+	if newPrice <= 0 {
+		return errors.New("price must be greater than zero")
+	}
+
+	p.Price = newPrice
+	return nil
+}
+func findProductIndexBySKU(products []Product, sku string) (int, error) {
+	for index, product := range products {
+		if product.SKU == sku {
+			return index, nil
+		}
+	}
+
+	return 0, errors.New("product not found")
+}
 func main() {
 	const currency = "COP"
 	const minimumStock = 5
 
-	products := []string{
-		"Yara",
-		"Khamrah",
-		"Asad Bourbon",
+	products, err4 := loadProducts("products.json")
+	if err4 != nil {
+		fmt.Print("Error", err4)
+		return
 	}
-
-	prices := []int{
-		200000,
-		210000,
-		210000,
+	products, err5 := addProduct(products, Product{SKU: "KHAM001", Name: "Khamra", Price: 200000, Stock: 3})
+	if err5 != nil {
+		fmt.Println("Could not add product:", err5)
 	}
-
-	stocks := []int{
-		8,
-		4,
-		10,
+	index, err := findProductIndexBySKU(products, "CLUB001")
+	if err != nil {
+		fmt.Print("No se encontro")
+	} else {
+		fmt.Println(products[index])
 	}
-	products = addProduct(products, "Club de nuit")
-	prices = addPrice(prices, 200000)
-	stocks = addStock(stocks, 5)
-
+	fmt.Println()
 	fmt.Println("PerfumeOps Catalog")
 	fmt.Println("--------------------")
 
@@ -79,75 +153,57 @@ func main() {
 		displayProduct(
 			index,
 			product,
-			prices[index],
-			stocks[index],
 			minimumStock,
 		)
 
-		totalInventoryValue += prices[index] * stocks[index]
+		totalInventoryValue += product.Price * product.Stock
 	}
 
 	fmt.Println("--------------------")
-	fmt.Printf("Total inventory value: %d %s\n", totalInventoryValue, currency)
+	fmt.Printf(
+		"Total inventory value: %d %s\n",
+		totalInventoryValue,
+		currency,
+	)
 
-	// Primera venta
-	productIndex := 0
-	quantity := 3
+	saleSku := "YARA001"
+	quantity := 1000
 
 	fmt.Println()
 	fmt.Println("Processing sale...")
 	fmt.Println("--------------------")
-
-	remainingStock, err := processSale(
-		stocks[productIndex],
-		quantity,
-	)
-
-	if err != nil {
-		fmt.Println("Sale could not be processed:", err)
+	products, revenue, err6, productIndex := processSaleBySKU(products, saleSku, quantity)
+	if err6 != nil {
+		fmt.Println("Sale could not be processed:", err6)
 	} else {
-		stocks[productIndex] = remainingStock
-
-		saleRevenue := calculateRevenue(
-			prices[productIndex],
-			quantity,
-		)
 
 		fmt.Println("Sale processed successfully")
-		fmt.Println("Product:", products[productIndex])
+		fmt.Println("Product:", products[productIndex].Name)
 		fmt.Println("Units sold:", quantity)
-		fmt.Println("Remaining stock:", stocks[productIndex])
-		fmt.Printf("Sale revenue: %d %s\n", saleRevenue, currency)
+		fmt.Println("Remaining stock:", products[productIndex].Stock)
+		fmt.Println("Revenue:", revenue)
 	}
 
 	// Segunda venta
-	productIndex2 := 1
-	quantity2 := 3
+	saleSku2 := "KHAM001"
+	quantity2 := 0
 
 	fmt.Println()
 	fmt.Println("Processing second sale...")
 	fmt.Println("--------------------")
-
-	remainingStock2, err := processSale(
-		stocks[productIndex2],
-		quantity2,
-	)
-
-	if err != nil {
-		fmt.Println("Sale could not be processed:", err)
+	products, revenue, err7, productIndex2 := processSaleBySKU(products, saleSku2, quantity2)
+	if err7 != nil {
+		fmt.Println("Sale could not be processed:", err7)
 	} else {
-		stocks[productIndex2] = remainingStock2
-
-		saleRevenue2 := calculateRevenue(
-
-			prices[productIndex2],
-			quantity2,
-		)
-
 		fmt.Println("Sale processed successfully")
-		fmt.Println("Product:", products[productIndex2])
+		fmt.Println("Product:", products[productIndex2].Name)
 		fmt.Println("Units sold:", quantity2)
-		fmt.Println("Remaining stock:", stocks[productIndex2])
-		fmt.Printf("Sale revenue: %d %s\n", saleRevenue2, currency)
+		fmt.Println("Remaining stock:", products[productIndex2].Stock)
+		fmt.Println("Revenue:", revenue)
 	}
+	err8 := saveProducts(products, "products.json")
+	if err8 != nil {
+		fmt.Print("No se puede guardar")
+	}
+
 }

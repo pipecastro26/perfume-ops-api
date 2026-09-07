@@ -1,0 +1,14 @@
+[
+  {
+    "sku": "YARA001",
+    "name": "Yara",
+    "price": 200000,
+    "stock": 3
+  },
+  {
+    "sku": "KHAM001",
+    "name": "Khamrah",
+    "price": 210000,
+    "stock": 5
+  }
+]
