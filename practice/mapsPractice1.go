@@ -2,72 +2,75 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 )
 
 type Product struct {
-	Name  string `json:"name"`
-	Price int    `json:"price"`
-	Stock int    `json:"stock"`
+	SKU   string
+	Name  string
+	Price int
+	Stock int
 }
 
-func (p *Product) IncreaseStock(quantity int) error {
-	if quantity <= 0 {
-		return errors.New("Error")
-	}
-	p.Stock += quantity
-	return nil
-}
-func saveProducts(products []Product, filename string) error {
-	data, err := json.MarshalIndent(products, "", "  ")
-
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(filename, data, 0644)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-func loadProducts(filename string) ([]Product, error) {
-	data, err := os.ReadFile(filename)
-
-	if err != nil {
-		return []Product{}, errors.New("no se leyo")
-	}
-
-	var products []Product
-
-	err = json.Unmarshal(data, &products)
-
-	if err != nil {
-		return products, errors.New("no se leyo")
-	}
-
-	return products, nil
-}
 func main() {
 	products := []Product{
-		{Name: "Yara", Price: 200000, Stock: 8},
-		{Name: "Khamrah", Price: 210000, Stock: 4},
-		{Name: "Asad Bourbon", Price: 210000, Stock: 10},
+		{
+			SKU:   "A",
+			Name:  "Asad",
+			Price: 200000,
+			Stock: 3,
+		},
+		{
+			SKU:   "B",
+			Name:  "BORB",
+			Price: 300000,
+			Stock: 4,
+		},
+		{
+			SKU:   "C",
+			Name:  "Yara",
+			Price: 400000,
+			Stock: 9,
+		},
 	}
-	err := saveProducts(products, "products.json")
-	prop, err2 := loadProducts("products.json")
-	if err2 != nil {
-		fmt.Println("Error saving products:", err2)
-	} else {
-		fmt.Println(prop)
-	}
+	data, err := json.MarshalIndent(products, "", "  ")
 	if err != nil {
-		fmt.Println("Error saving products:", err)
-	} else {
-		fmt.Println("Products saved successfully")
+		fmt.Println("Error converting to JSON:", err)
+		return
 	}
+	err = os.WriteFile("practiceProducts.json", data, 0644)
+	if err != nil {
+		fmt.Println("Error writing file:", err)
+		return
+	}
+	fmt.Println("Products saved successfully")
+
+	dataFromFile, err := os.ReadFile("practiceProducts.json")
+
+	if err != nil {
+		fmt.Println("Error reading file:", err)
+		return
+	}
+
+	var loadedProducts []Product
+
+	err = json.Unmarshal(dataFromFile, &loadedProducts)
+
+	if err != nil {
+		fmt.Println("Error converting JSON:", err)
+		return
+	}
+
+	fmt.Println()
+	fmt.Println("Products loaded:")
+
+	for _, product := range loadedProducts {
+		fmt.Println("--------------------")
+		fmt.Println("SKU:", product.SKU)
+		fmt.Println("Name:", product.Name)
+		fmt.Println("Price:", product.Price)
+		fmt.Println("Stock:", product.Stock)
+	}
+
 }

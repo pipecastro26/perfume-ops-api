@@ -1,14 +1,17 @@
 [
   {
-    "sku": "YARA001",
     "name": "Yara",
     "price": 200000,
-    "stock": 0
+    "stock": 8
   },
   {
-    "sku": "KHAM001",
     "name": "Khamrah",
     "price": 210000,
-    "stock": 2
+    "stock": 4
+  },
+  {
+    "name": "Asad Bourbon",
+    "price": 210000,
+    "stock": 10
   }
 ]
